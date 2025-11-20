@@ -216,13 +216,12 @@
       border-radius: 16px;
       border: 2px dashed rgba(38, 65, 60, 0.35);
       background: rgba(243, 226, 199, 0.55);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 0.9rem;
-      color: rgba(16, 34, 31, 0.8);
+      padding: 0.75rem;
+    }
+
+    .form-placeholder iframe {
+      width: 100%;
+      border: 0;
     }
 
     code {
@@ -305,25 +304,21 @@
           <h2>New Experiment Submission</h2>
         </div>
         <p class="form-description">
-          Paste your Google Form embed here to capture raw notes or parameters
-          for each new experiment. Your Make.com / labbook automation can then
-          turn these into clean protocols and log all reagents.
+          Submit raw notes or parameters for each new experiment. Your Make.com /
+          labbook automation can then turn these into clean protocols and log all reagents.
         </p>
 
-        <!-- Replace the placeholder below with your actual Google Form iframe -->
         <div class="form-placeholder" id="google-form-container">
-          <!-- Example for later:
-          <iframe src="YOUR_GOOGLE_FORM_EMBED_URL_HERE"
-                  width="100%"
-                  height="520"
-                  frameborder="0"
-                  marginheight="0"
-                  marginwidth="0">
-          Loading…
+          <iframe
+            src="https://docs.google.com/forms/d/e/1FAIpQLSc7gxfI-xwMNXVhxefOE-ri2oCp6oJWF8RV2GK_YMWdj1MpeA/viewform?embedded=true"
+            width="100%"
+            height="757"
+            frameborder="0"
+            marginheight="0"
+            marginwidth="0"
+          >
+            Loading…
           </iframe>
-          -->
-          Drop your Google Form <code>&lt;iframe&gt;</code> embed code here
-          when it’s ready.
         </div>
       </section>
     </main>
