@@ -121,16 +121,12 @@
     .layout {
       display: grid;
       grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
-      grid-template-areas:
-        "counter form"
-        "recent  form";
       gap: 1.25rem;
       align-items: start; /* let tiles have their own height */
     }
 
     /* Counter card */
     .card {
-      grid-area: counter;
       background: var(--card-bg);
       border-radius: 20px;
       padding: 1.1rem 1.4rem;
@@ -211,71 +207,8 @@
       font-size: 0.9rem;
     }
 
-    /* Recent experiments tile */
-    .recent-card {
-      grid-area: recent;
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 1.1rem 1.4rem;
-      box-shadow:
-        0 8px 20px rgba(58, 71, 69, 0.18),
-        0 0 0 1px rgba(191, 191, 172, 0.9);
-    }
-
-    .recent-title {
-      margin: 0 0 0.5rem 0;
-      font-size: 1rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--turtle-shell);
-    }
-
-    .recent-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.65rem;
-    }
-
-    .recent-item {
-      border-radius: 12px;
-      padding: 0.45rem 0.7rem;
-      background: rgba(254, 246, 234, 0.95);
-      border: 1px solid rgba(191, 191, 172, 0.9);
-    }
-
-    .recent-item-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 0.5rem;
-      font-size: 0.78rem;
-      margin-bottom: 0.2rem;
-      color: rgba(58, 71, 69, 0.85);
-    }
-
-    .recent-item-exp {
-      font-weight: 600;
-    }
-
-    .recent-item-date {
-      opacity: 0.8;
-    }
-
-    .recent-item-summary {
-      font-size: 0.83rem;
-      color: rgba(58, 71, 69, 0.95);
-    }
-
-    .recent-empty {
-      font-size: 0.85rem;
-      color: rgba(58, 71, 69, 0.7);
-    }
-
     /* Google Form section */
     .form-card {
-      grid-area: form;
       background: var(--card-bg);
       border-radius: 20px;
       padding: 1.1rem 1.4rem;
@@ -340,10 +273,6 @@
 
       .layout {
         grid-template-columns: minmax(0, 1fr);
-        grid-template-areas:
-          "counter"
-          "recent"
-          "form";
       }
 
       .experiment-number {
@@ -410,14 +339,6 @@
         </div>
       </section>
 
-      <!-- RECENT EXPERIMENTS TILE -->
-      <section class="recent-card" aria-label="Recent experiments">
-        <h2 class="recent-title">Recent Experiments</h2>
-        <ul class="recent-list" id="recent-experiments">
-          <li class="recent-empty">Loading recent experiments…</li>
-        </ul>
-      </section>
-
       <!-- GOOGLE FORM AREA -->
       <section class="form-card">
         <div class="form-header">
@@ -447,69 +368,11 @@
   <script src="https://cdn.botpress.cloud/webchat/v3.4/inject.js"></script>
   <script src="https://files.bpcontent.cloud/2025/11/20/13/20251120135545-5ASOW9FL.js" defer></script>
 
-  <!-- Counter + Recent Experiments script: fetch data from Make -->
+  <!-- Counter script: fetch latest experiment number from Make -->
   <script>
-    function makeOneSentence(text) {
-      if (!text) return '';
-      const trimmed = String(text).trim();
-
-      // Take up to the first period as a "sentence"
-      const periodIndex = trimmed.indexOf('.');
-      let sentence = periodIndex !== -1
-        ? trimmed.slice(0, periodIndex + 1)
-        : trimmed;
-
-      // Hard cap length so it doesn't get huge
-      const maxLen = 160;
-      if (sentence.length > maxLen) {
-        sentence = sentence.slice(0, maxLen - 1) + '…';
-      }
-      return sentence;
-    }
-
-    function renderRecentExperiments(items) {
-      const container = document.getElementById('recent-experiments');
-      if (!container) return;
-
-      container.innerHTML = '';
-
-      if (!items || !items.length) {
-        container.innerHTML = '<li class="recent-empty">No experiments yet.</li>';
-        return;
-      }
-
-      items.slice(0, 3).forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'recent-item';
-
-        const header = document.createElement('div');
-        header.className = 'recent-item-header';
-
-        const exp = document.createElement('span');
-        exp.className = 'recent-item-exp';
-        const expVal = item.expNr ?? item.expnr ?? item["Exp nr"] ?? item["exp nr"] ?? "?";
-        exp.textContent = `Exp ${expVal}`;
-
-        const date = document.createElement('span');
-        date.className = 'recent-item-date';
-        date.textContent = item.date ?? item.Date ?? '';
-
-        header.appendChild(exp);
-        header.appendChild(date);
-
-        const summary = document.createElement('div');
-        summary.className = 'recent-item-summary';
-        const protoText = item.summary ?? item.Summary ?? item.protocol ?? item.Protocol ?? '';
-        summary.textContent = makeOneSentence(protoText);
-
-        li.appendChild(header);
-        li.appendChild(summary);
-        container.appendChild(li);
-      });
-    }
-
-    async function updateExperimentData() {
+    async function updateExperimentCounter() {
       const counterEl = document.getElementById('experiment-number');
+      if (!counterEl) return;
 
       try {
         const res = await fetch('https://hook.eu1.make.com/njrenf784pch1inugusrciy9e7aabuvk', {
@@ -522,25 +385,18 @@
 
         const data = await res.json();
 
-        // Counter
-        if (counterEl && data.latestExp != null) {
-          const latest = Number(data.latestExp);
-          if (!Number.isNaN(latest)) {
-            counterEl.textContent = String(latest).padStart(3, '0');
-          }
-        }
-
-        // Recent experiments
-        if (data.recentExperiments) {
-          renderRecentExperiments(data.recentExperiments);
+        // Expecting something like: { "latestExp": 42 }
+        const latest = Number(data.latestExp);
+        if (!Number.isNaN(latest)) {
+          counterEl.textContent = String(latest).padStart(3, '0');
         }
       } catch (err) {
-        console.error('Failed to update experiment data:', err);
-        // Leave fallback number and "Loading…" text if things fail
+        console.error('Failed to update experiment counter:', err);
+        // If it fails, the fallback value (e.g. 042) stays visible
       }
     }
 
-    document.addEventListener('DOMContentLoaded', updateExperimentData);
+    document.addEventListener('DOMContentLoaded', updateExperimentCounter);
   </script>
 </body>
 </html>
