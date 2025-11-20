@@ -318,7 +318,7 @@
       <section class="card" aria-label="Latest experiment number">
         <div class="card-inner">
           <div class="counter-label">Current last experiment</div>
-          <!-- Change this number manually or hook it up to your automation -->
+          <!-- Fallback value, will be replaced by JS -->
           <div class="experiment-number" id="experiment-number">
             042
           </div>
@@ -363,5 +363,36 @@
       </section>
     </main>
   </div>
+
+  <!-- Counter script: fetch latest experiment number from Make -->
+  <script>
+    async function updateExperimentCounter() {
+      const counterEl = document.getElementById('experiment-number');
+      if (!counterEl) return;
+
+      try {
+        const res = await fetch('https://hook.eu1.make.com/njrenf784pch1inugusrciy9e7aabuvk', {
+          method: 'GET'
+        });
+
+        if (!res.ok) {
+          throw new Error('Network error: ' + res.status);
+        }
+
+        const data = await res.json();
+
+        // Expecting something like: { "latestExp": 42 }
+        const latest = Number(data.latestExp);
+        if (!Number.isNaN(latest)) {
+          counterEl.textContent = String(latest).padStart(3, '0');
+        }
+      } catch (err) {
+        console.error('Failed to update experiment counter:', err);
+        // If it fails, the fallback value (e.g. 042) stays visible
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', updateExperimentCounter);
+  </script>
 </body>
 </html>
