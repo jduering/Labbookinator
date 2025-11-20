@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Labbook Automation · Experiment Tracker</title>
+
+  <style>
+    :root {
+      /* Turtle-inspired palette */
+      --turtle-shell: #26413c;      /* deep shell green */
+      --turtle-skin: #3b7a57;       /* sea green */
+      --turtle-highlight: #7ecf9a;  /* light mossy green */
+      --turtle-sand: #f3e2c7;       /* sandy beige */
+      --turtle-brown: #5a3e36;      /* dark brown accent */
+      --card-bg: rgba(255, 255, 255, 0.96);
+      --text-main: #10221f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+      background:
+        radial-gradient(circle at top left, rgba(126, 207, 154, 0.35), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(38, 65, 60, 0.85), #051412);
+      background-color: #10211e;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1120px;
+      background: linear-gradient(135deg, rgba(243, 226, 199, 0.9), rgba(126, 207, 154, 0.2));
+      border-radius: 24px;
+      padding: 2rem 2.25rem 2.5rem;
+      box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(38, 65, 60, 0.18);
+      padding-bottom: 1rem;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      color: var(--turtle-shell);
+      letter-spacing: 0.03em;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 0.95rem;
+      max-width: 380px;
+      color: rgba(16, 34, 31, 0.9);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(59, 122, 87, 0.12);
+      color: var(--turtle-shell);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border: 1px solid rgba(38, 65, 60, 0.22);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
+      gap: 1.75rem;
+    }
+
+    /* Counter card */
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 1.6rem 1.8rem;
+      box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(38, 65, 60, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at top left, rgba(59, 122, 87, 0.09), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(90, 62, 54, 0.12), transparent 50%);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .counter-label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: rgba(16, 34, 31, 0.75);
+      margin-bottom: 0.75rem;
+    }
+
+    .experiment-number {
+      font-size: clamp(3.6rem, 6.3vw, 5.2rem);
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      color: var(--turtle-shell);
+      text-shadow:
+        0 5px 14px rgba(0, 0, 0, 0.29),
+        0 0 1px rgba(0, 0, 0, 0.4);
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px dashed rgba(16, 34, 31, 0.18);
+      text-align: center;
+    }
+
+    .counter-subtext {
+      font-size: 0.9rem;
+      color: rgba(16, 34, 31, 0.9);
+      margin-bottom: 0.95rem;
+      text-align: center;
+    }
+
+    .meta-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: rgba(16, 34, 31, 0.7);
+    }
+
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(126, 207, 154, 0.16);
+      border: 1px solid rgba(59, 122, 87, 0.25);
+      font-size: 0.76rem;
+      white-space: nowrap;
+    }
+
+    .meta-pill span.icon {
+      font-size: 0.9rem;
+    }
+
+    /* Google Form section */
+    .form-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 1.6rem 1.8rem;
+      box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(38, 65, 60, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 0.75rem;
+    }
+
+    .form-header h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: var(--turtle-shell);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .form-description {
+      font-size: 0.9rem;
+      color: rgba(16, 34, 31, 0.85);
+      line-height: 1.5;
+    }
+
+    .form-placeholder {
+      flex: 1;
+      margin-top: 0.5rem;
+      border-radius: 16px;
+      border: 2px dashed rgba(38, 65, 60, 0.35);
+      background: rgba(243, 226, 199, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: rgba(16, 34, 31, 0.8);
+    }
+
+    code {
+      font-family: "JetBrains Mono", Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 800px) {
+      .page {
+        padding: 1.5rem 1.2rem 1.8rem;
+      }
+
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .experiment-number {
+        letter-spacing: 0.14em;
+      }
+    }
+
+    @media (max-width: 520px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .form-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="badge">Labbook Automation UI</div>
+        <h1>Experiment Registry</h1>
+      </div>
+      <p>
+        Central place to see the latest experiment number and submit new runs
+        via your automated labbook workflow.
+      </p>
+    </header>
+
+    <main class="layout">
+      <!-- BIG COUNTER -->
+      <section class="card" aria-label="Latest experiment number">
+        <div class="card-inner">
+          <div class="counter-label">Current last experiment</div>
+          <!-- Change this number manually or hook it up to your automation -->
+          <div class="experiment-number" id="experiment-number">
+            042
+          </div>
+          <p class="counter-subtext">
+            This is the latest assigned experiment ID in your automated labbook.
+          </p>
+
+          <div class="meta-row">
+            <div class="meta-pill">
+              <span class="icon">🐢</span>
+              <span>Safe incremental numbering</span>
+            </div>
+            <div class="meta-pill">
+              <span class="icon">🧪</span>
+              <span>Ready for next experiment</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GOOGLE FORM AREA -->
+      <section class="form-card">
+        <div class="form-header">
+          <h2>New Experiment Submission</h2>
+        </div>
+        <p class="form-description">
+          Paste your Google Form embed here to capture raw notes or parameters
+          for each new experiment. Your Make.com / labbook automation can then
+          turn these into clean protocols and log all reagents.
+        </p>
+
+        <!-- Replace the placeholder below with your actual Google Form iframe -->
+        <div class="form-placeholder" id="google-form-container">
+          <!-- Example for later:
+          <iframe src="YOUR_GOOGLE_FORM_EMBED_URL_HERE"
+                  width="100%"
+                  height="520"
+                  frameborder="0"
+                  marginheight="0"
+                  marginwidth="0">
+          Loading…
+          </iframe>
+          -->
+          Drop your Google Form <code>&lt;iframe&gt;</code> embed code here
+          when it’s ready.
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
