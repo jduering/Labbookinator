@@ -7,14 +7,14 @@
 
   <style>
     :root {
-      /* Turtle-inspired palette */
-      --turtle-shell: #26413c;      /* deep shell green */
-      --turtle-skin: #3b7a57;       /* sea green */
-      --turtle-highlight: #7ecf9a;  /* light mossy green */
-      --turtle-sand: #f3e2c7;       /* sandy beige */
-      --turtle-brown: #5a3e36;      /* dark brown accent */
-      --card-bg: rgba(255, 255, 255, 0.96);
-      --text-main: #10221f;
+      /* Palette tuned towards teal / blue to match the header image vibe */
+      --turtle-shell: #0f172a;      /* deep navy */
+      --turtle-skin: #0e7490;       /* teal */
+      --turtle-highlight: #22d3ee;  /* bright cyan highlight */
+      --turtle-sand: #f9fafb;       /* very light background */
+      --turtle-brown: #f97316;      /* warm accent (orange) */
+      --card-bg: rgba(255, 255, 255, 0.98);
+      --text-main: #020617;
     }
 
     * {
@@ -32,21 +32,38 @@
       align-items: center;
       padding: 1.5rem;
       background:
-        radial-gradient(circle at top left, rgba(126, 207, 154, 0.35), transparent 55%),
-        radial-gradient(circle at bottom right, rgba(38, 65, 60, 0.85), #051412);
-      background-color: #10211e;
+        radial-gradient(circle at top left, rgba(191, 219, 254, 0.8), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.95), #020617);
+      background-color: #020617;
     }
 
     .page {
       width: 100%;
       max-width: 1120px;
-      background: linear-gradient(135deg, rgba(243, 226, 199, 0.9), rgba(126, 207, 154, 0.2));
+      background: linear-gradient(145deg, rgba(249, 250, 251, 0.98), rgba(219, 234, 254, 0.9));
       border-radius: 24px;
-      padding: 2rem 2.25rem 2.5rem;
+      padding: 1.5rem 2.25rem 2.5rem;
       box-shadow:
-        0 18px 45px rgba(0, 0, 0, 0.35),
-        0 0 0 1px rgba(255, 255, 255, 0.35);
-      backdrop-filter: blur(12px);
+        0 22px 55px rgba(15, 23, 42, 0.5),
+        0 0 0 1px rgba(148, 163, 184, 0.5);
+      backdrop-filter: blur(14px);
+    }
+
+    /* Hero header image */
+    .hero {
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      box-shadow:
+        0 18px 40px rgba(15, 23, 42, 0.45),
+        0 0 0 1px rgba(15, 23, 42, 0.5);
+      background: #020617;
+    }
+
+    .hero img {
+      display: block;
+      width: 100%;
+      height: auto;
     }
 
     header {
@@ -56,7 +73,7 @@
       align-items: flex-end;
       gap: 0.75rem;
       margin-bottom: 2rem;
-      border-bottom: 1px solid rgba(38, 65, 60, 0.18);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.5);
       padding-bottom: 1rem;
     }
 
@@ -71,7 +88,7 @@
       margin: 0;
       font-size: 0.95rem;
       max-width: 380px;
-      color: rgba(16, 34, 31, 0.9);
+      color: rgba(15, 23, 42, 0.9);
     }
 
     .badge {
@@ -80,12 +97,21 @@
       gap: 0.4rem;
       padding: 0.25rem 0.65rem;
       border-radius: 999px;
-      background: rgba(59, 122, 87, 0.12);
+      background: rgba(34, 211, 238, 0.12);
       color: var(--turtle-shell);
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      border: 1px solid rgba(38, 65, 60, 0.22);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+    }
+
+    .badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--turtle-highlight);
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.9);
     }
 
     .layout {
@@ -100,8 +126,8 @@
       border-radius: 20px;
       padding: 1.6rem 1.8rem;
       box-shadow:
-        0 10px 25px rgba(0, 0, 0, 0.12),
-        0 0 0 1px rgba(38, 65, 60, 0.12);
+        0 10px 25px rgba(15, 23, 42, 0.2),
+        0 0 0 1px rgba(148, 163, 184, 0.6);
       position: relative;
       overflow: hidden;
     }
@@ -111,9 +137,9 @@
       position: absolute;
       inset: -40%;
       background:
-        radial-gradient(circle at top left, rgba(59, 122, 87, 0.09), transparent 55%),
-        radial-gradient(circle at bottom right, rgba(90, 62, 54, 0.12), transparent 50%);
-      opacity: 0.8;
+        radial-gradient(circle at top left, rgba(34, 211, 238, 0.16), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.18), transparent 50%);
+      opacity: 0.9;
       pointer-events: none;
     }
 
@@ -126,7 +152,7 @@
       font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.14em;
-      color: rgba(16, 34, 31, 0.75);
+      color: rgba(15, 23, 42, 0.7);
       margin-bottom: 0.75rem;
     }
 
@@ -136,17 +162,17 @@
       letter-spacing: 0.18em;
       color: var(--turtle-shell);
       text-shadow:
-        0 5px 14px rgba(0, 0, 0, 0.29),
-        0 0 1px rgba(0, 0, 0, 0.4);
+        0 5px 14px rgba(15, 23, 42, 0.6),
+        0 0 1px rgba(15, 23, 42, 0.9);
       margin-bottom: 0.6rem;
       padding-bottom: 0.4rem;
-      border-bottom: 1px dashed rgba(16, 34, 31, 0.18);
+      border-bottom: 1px dashed rgba(148, 163, 184, 0.9);
       text-align: center;
     }
 
     .counter-subtext {
       font-size: 0.9rem;
-      color: rgba(16, 34, 31, 0.9);
+      color: rgba(15, 23, 42, 0.9);
       margin-bottom: 0.95rem;
       text-align: center;
     }
@@ -157,7 +183,7 @@
       justify-content: space-between;
       flex-wrap: wrap;
       font-size: 0.8rem;
-      color: rgba(16, 34, 31, 0.7);
+      color: rgba(15, 23, 42, 0.7);
     }
 
     .meta-pill {
@@ -166,8 +192,8 @@
       gap: 0.35rem;
       padding: 0.3rem 0.7rem;
       border-radius: 999px;
-      background: rgba(126, 207, 154, 0.16);
-      border: 1px solid rgba(59, 122, 87, 0.25);
+      background: rgba(37, 99, 235, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.5);
       font-size: 0.76rem;
       white-space: nowrap;
     }
@@ -182,8 +208,8 @@
       border-radius: 20px;
       padding: 1.6rem 1.8rem;
       box-shadow:
-        0 10px 25px rgba(0, 0, 0, 0.12),
-        0 0 0 1px rgba(38, 65, 60, 0.12);
+        0 10px 25px rgba(15, 23, 42, 0.2),
+        0 0 0 1px rgba(148, 163, 184, 0.6);
       display: flex;
       flex-direction: column;
       gap: 0.9rem;
@@ -206,7 +232,7 @@
 
     .form-description {
       font-size: 0.9rem;
-      color: rgba(16, 34, 31, 0.85);
+      color: rgba(15, 23, 42, 0.85);
       line-height: 1.5;
     }
 
@@ -214,8 +240,8 @@
       flex: 1;
       margin-top: 0.5rem;
       border-radius: 16px;
-      border: 2px dashed rgba(38, 65, 60, 0.35);
-      background: rgba(243, 226, 199, 0.55);
+      border: 2px solid rgba(148, 163, 184, 0.9);
+      background: rgba(248, 250, 252, 0.95);
       padding: 0.75rem;
     }
 
@@ -227,14 +253,14 @@
     code {
       font-family: "JetBrains Mono", Menlo, Consolas, monospace;
       font-size: 0.8rem;
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(15, 23, 42, 0.04);
       padding: 0.1rem 0.35rem;
       border-radius: 6px;
     }
 
     @media (max-width: 800px) {
       .page {
-        padding: 1.5rem 1.2rem 1.8rem;
+        padding: 1.2rem 1.1rem 1.8rem;
       }
 
       .layout {
@@ -261,6 +287,13 @@
 </head>
 <body>
   <div class="page">
+    <div class="hero">
+      <img
+        src="https://github.com/jduering/Labbookinator/blob/main/Untitled%20design.png?raw=true"
+        alt="Labbookinator – Labbook Automation Header"
+      />
+    </div>
+
     <header>
       <div>
         <div class="badge">Labbook Automation UI</div>
