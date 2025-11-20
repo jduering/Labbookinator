@@ -207,6 +207,30 @@
       font-size: 0.9rem;
     }
 
+    /* Chatbot section (below counter) */
+    .chat-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 0.9rem 1.4rem;
+      box-shadow:
+        0 8px 20px rgba(58, 71, 69, 0.18),
+        0 0 0 1px rgba(191, 191, 172, 0.9);
+    }
+
+    .chat-card h2 {
+      margin: 0 0 0.4rem 0;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--turtle-shell);
+    }
+
+    .chat-card p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: rgba(58, 71, 69, 0.85);
+    }
+
     /* Google Form section */
     .form-card {
       background: var(--card-bg);
@@ -339,6 +363,15 @@
         </div>
       </section>
 
+      <!-- CHATBOT TILE (below counter, same column) -->
+      <section class="chat-card" aria-label="Labbook assistant chatbot">
+        <h2>Labbookinator Chat</h2>
+        <p>
+          Use the chat widget (bottom-right) for quick help with experiments,
+          reagents and automations.
+        </p>
+      </section>
+
       <!-- GOOGLE FORM AREA -->
       <section class="form-card">
         <div class="form-header">
@@ -363,6 +396,10 @@
       </section>
     </main>
   </div>
+
+  <!-- Botpress chatbot scripts -->
+  <script src="https://cdn.botpress.cloud/webchat/v3.4/inject.js"></script>
+  <script src="https://files.bpcontent.cloud/2025/11/20/13/20251120135545-5ASOW9FL.js" defer></script>
 
   <!-- Counter script: fetch latest experiment number from Make -->
   <script>
