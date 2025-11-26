@@ -430,33 +430,7 @@
   <script src="https://cdn.botpress.cloud/webchat/v3.4/inject.js"></script>
   <script src="https://files.bpcontent.cloud/2025/11/20/13/20251120135545-5ASOW9FL.js" defer></script>
 
- <script>
-  async function updateExperimentCounter() {
-    const counterEl = document.getElementById('experiment-number');
-    if (!counterEl) return;
-
-    try {
-      const res = await fetch('https://hook.eu1.make.com/njrenf784pch1inugusrciy9e7aabuvk', {
-        method: 'GET'
-      });
-
-      if (!res.ok) {
-        throw new Error('Network error: ' + res.status);
-      }
-
-      const data = await res.json();
-
-      // Expecting something like: { "latestExp": 42 }
-      const latest = Number(data.latestExp);
-      if (!Number.isNaN(latest)) {
-        counterEl.textContent = String(latest).padStart(3, '0');
-      }
-    } catch (err) {
-      console.error('Failed to update experiment counter:', err);
-      // If it fails, the fallback value (e.g. 042) stays visible
-    }
-  }
-
+<script>
   // CSV parser that respects quotes, commas, and multi-line fields
   function parseCSV(text) {
     const rows = [];
@@ -507,10 +481,13 @@
       .replace(/[^a-z0-9]/g, '');    // strip spaces, dots, etc.
   }
 
-  async function loadLastExperimentProtocol() {
-    const numEl = document.getElementById('last-experiment-number');
-    const protoEl = document.getElementById('last-experiment-protocol');
-    if (!numEl || !protoEl) return;
+  async function loadExperimentData() {
+    const bigCounterEl   = document.getElementById('experiment-number');
+    const smallCounterEl = document.getElementById('last-experiment-number');
+    const protoEl        = document.getElementById('last-experiment-protocol');
+
+    // If none of these exist, nothing to do
+    if (!bigCounterEl && !smallCounterEl && !protoEl) return;
 
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTt5IuGNQY_nW-xFZguKwJzUFQgudj0UGIiiYU--tKsn-g3mv9qPDEQVIy4q3YtErFUmmxBd_BHrYa7/pub?gid=0&single=true&output=csv";
 
@@ -519,7 +496,7 @@
       if (!res.ok) throw new Error("Network response was not ok: " + res.status);
       const text = await res.text();
 
-      const rows = parseCSV(text.trim());
+      const rows = parseCSV(text);
       if (!rows.length) {
         throw new Error("Sheet appears to be empty");
       }
@@ -528,8 +505,7 @@
       const header = rawHeader.map(normalizeHeaderCell);
 
       // "Date,Exp Nr.,Protocol" -> "date","expnr","protocol"
-      const dateIdx = header.indexOf('date'); // not used, but available if needed
-      const exprIdx = header.indexOf('expnr');
+      const exprIdx     = header.indexOf('expnr');
       const protocolIdx = header.indexOf('protocol');
 
       if (exprIdx === -1 || protocolIdx === -1) {
@@ -543,7 +519,9 @@
         const row = rows[i];
         if (!row || row.length <= exprIdx) continue;
 
-        const num = parseFloat(row[exprIdx]);
+        const rawVal = (row[exprIdx] || '').toString().trim();
+        const num = parseFloat(rawVal);
+
         if (!Number.isNaN(num) && num > bestNum) {
           bestNum = num;
           bestRow = row;
@@ -556,27 +534,38 @@
 
       let protocol = bestRow[protocolIdx] || "";
 
-      // Extra safety: normalize any weird encodings of line breaks
+      // Normalize line breaks (just in case)
       protocol = protocol
         .replace(/\r\n/g, '\n')
         .replace(/\r/g, '\n')
         .replace(/\\n/g, '\n')
         .replace(/&#10;|&#13;/g, '\n');
 
-      // Show nicely padded experiment number (e.g. 007)
-      numEl.textContent = String(bestNum).padStart(3, '0');
-      protoEl.textContent = protocol.trim() || "Protocol column is empty for the last experiment.";
+      const padded = String(bestNum).padStart(3, '0');
+
+      // Update big counter card
+      if (bigCounterEl) {
+        bigCounterEl.textContent = padded;
+      }
+
+      // Update small pill next to "Last Experiment Protocol"
+      if (smallCounterEl) {
+        smallCounterEl.textContent = padded;
+      }
+
+      // Update protocol text
+      if (protoEl) {
+        protoEl.textContent = protocol.trim() || "Protocol column is empty for the last experiment.";
+      }
     } catch (err) {
-      console.error("Error loading last experiment protocol:", err);
-      numEl.textContent = "–";
-      protoEl.textContent = "Could not load protocol from the Google Sheet.";
+      console.error("Error loading experiment data:", err);
+      if (bigCounterEl)   bigCounterEl.textContent   = "–";
+      if (smallCounterEl) smallCounterEl.textContent = "–";
+      if (protoEl)        protoEl.textContent        = "Could not load protocol from the Google Sheet.";
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    updateExperimentCounter();
-    loadLastExperimentProtocol();
-  });
+  document.addEventListener('DOMContentLoaded', loadExperimentData);
 </script>
 </body>
 </html>
