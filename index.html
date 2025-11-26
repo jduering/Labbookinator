@@ -37,6 +37,11 @@
       background-color: var(--turtle-sand);
     }
 
+    /* Password protection: hide body until unlocked */
+    body.protected {
+      display: none !important;
+    }
+
     .page {
       width: 100%;
       max-width: 1120px;
@@ -378,7 +383,7 @@
     }
   </style>
 </head>
-<body>
+<body class="protected">
   <div class="page">
     <div class="hero">
       <img
@@ -476,6 +481,39 @@
       </div>
     </section>
   </div>
+
+  <!-- Simple front-end password protection -->
+  <script>
+    (function () {
+      var PASSWORD = "HotTigers@zh";
+      var MAX_TRIES = 3;
+      var authorized = false;
+
+      for (var i = 0; i < MAX_TRIES; i++) {
+        var input = prompt("Enter password to access this page:");
+        if (input === null) break; // user cancelled
+        if (input === PASSWORD) {
+          authorized = true;
+          break;
+        }
+      }
+
+      if (authorized) {
+        // show the page
+        document.body.classList.remove("protected");
+      } else {
+        // replace content with an "access denied" message
+        document.body.innerHTML =
+          '<div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#fdf6ea; color:#3a4745; padding:2rem; box-sizing:border-box;">' +
+            '<div style="max-width:480px; text-align:center;">' +
+              '<h1 style="margin-bottom:0.75rem; font-size:1.8rem;">Access denied</h1>' +
+              '<p style="margin:0; font-size:0.95rem;">Incorrect password. Reload the page to try again.</p>' +
+            "</div>" +
+          "</div>";
+        document.body.classList.remove("protected");
+      }
+    })();
+  </script>
 
   <!-- Botpress chatbot (new version) -->
   <script src="https://cdn.botpress.cloud/webchat/v3.4/inject.js"></script>
