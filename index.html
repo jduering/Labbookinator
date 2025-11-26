@@ -125,7 +125,7 @@
       align-items: start; /* let tiles have their own height */
     }
 
-    /* Counter card */
+    /* Generic card */
     .card {
       background: var(--card-bg);
       border-radius: 20px;
@@ -258,6 +258,46 @@
       border: 0;
     }
 
+    /* PROTOCOL CARD */
+    .protocol-card {
+      margin-top: 1.5rem;
+    }
+
+    .protocol-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .protocol-header h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--turtle-shell);
+    }
+
+    .protocol-hint {
+      font-size: 0.85rem;
+      color: rgba(58, 71, 69, 0.8);
+      margin: 0 0 0.6rem 0;
+    }
+
+    .protocol-body {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      background: #f7f4eb;
+      padding: 0.9rem 1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(191, 191, 172, 0.9);
+    }
+
     code {
       font-family: "JetBrains Mono", Menlo, Consolas, monospace;
       font-size: 0.8rem;
@@ -277,6 +317,11 @@
 
       .experiment-number {
         letter-spacing: 0.14em;
+      }
+
+      .protocol-header {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
 
@@ -362,13 +407,30 @@
         </div>
       </section>
     </main>
+
+    <!-- LAST EXPERIMENT PROTOCOL (from Google Sheet) -->
+    <section class="card protocol-card" aria-label="Last experiment protocol">
+      <div class="card-inner">
+        <div class="protocol-header">
+          <h2>Last Experiment Protocol</h2>
+          <div class="meta-pill">
+            <span class="icon">📄</span>
+            <span>Experiment <span id="last-experiment-number">–</span></span>
+          </div>
+        </div>
+        <p class="protocol-hint">
+          Loaded live from your experiment registry Google Sheet.
+        </p>
+        <pre id="last-experiment-protocol" class="protocol-body">Loading protocol…</pre>
+      </div>
+    </section>
   </div>
 
   <!-- Botpress chatbot (new version) -->
   <script src="https://cdn.botpress.cloud/webchat/v3.4/inject.js"></script>
   <script src="https://files.bpcontent.cloud/2025/11/20/13/20251120135545-5ASOW9FL.js" defer></script>
 
-  <!-- Counter script: fetch latest experiment number from Make -->
+  <!-- Counter + protocol script -->
   <script>
     async function updateExperimentCounter() {
       const counterEl = document.getElementById('experiment-number');
@@ -396,7 +458,109 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', updateExperimentCounter);
+    // Simple TSV parser that respects quoted cells (for multi-line protocols)
+    function parseTSV(text) {
+      const rows = [];
+      let row = [];
+      let cell = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+
+        if (c === '"') {
+          if (inQuotes && text[i + 1] === '"') {
+            // Escaped quote
+            cell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (c === '\t' && !inQuotes) {
+          row.push(cell);
+          cell = '';
+        } else if ((c === '\n' || c === '\r') && !inQuotes) {
+          // Handle CRLF
+          if (c === '\r' && text[i + 1] === '\n') {
+            i++;
+          }
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = '';
+        } else {
+          cell += c;
+        }
+      }
+
+      // Push last cell/row if any
+      if (cell.length > 0 || row.length > 0) {
+        row.push(cell);
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    async function loadLastExperimentProtocol() {
+      const numEl = document.getElementById('last-experiment-number');
+      const protoEl = document.getElementById('last-experiment-protocol');
+      if (!numEl || !protoEl) return;
+
+      const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTt5IuGNQY_nW-xFZguKwJzUFQgudj0UGIiiYU--tKsn-g3mv9qPDEQVIy4q3YtErFUmmxBd_BHrYa7/pub?gid=0&single=true&output=tsv";
+
+      try {
+        const res = await fetch(SHEET_URL);
+        if (!res.ok) throw new Error("Network response was not ok: " + res.status);
+        const text = await res.text();
+
+        const rows = parseTSV(text.trim());
+        if (!rows.length) {
+          throw new Error("Sheet appears to be empty");
+        }
+
+        const header = rows[0].map(h => h.toLowerCase().trim());
+
+        const exprIdx = header.findIndex(h => h.includes("expr"));
+        const protocolIdx = header.findIndex(h => h.includes("protocol"));
+
+        if (exprIdx === -1 || protocolIdx === -1) {
+          throw new Error("Could not find 'expr' or 'protocol' column in header");
+        }
+
+        let bestRow = null;
+        let bestNum = -Infinity;
+
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || row.length <= exprIdx) continue;
+
+          const num = parseFloat(row[exprIdx]);
+          if (!Number.isNaN(num) && num > bestNum) {
+            bestNum = num;
+            bestRow = row;
+          }
+        }
+
+        if (!bestRow) {
+          throw new Error("No valid experiment numbers found");
+        }
+
+        const protocol = bestRow[protocolIdx] || "";
+
+        numEl.textContent = bestNum;
+        protoEl.textContent = protocol || "Protocol column is empty for the last experiment.";
+      } catch (err) {
+        console.error("Error loading last experiment protocol:", err);
+        numEl.textContent = "–";
+        protoEl.textContent = "Could not load protocol from the Google Sheet.";
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateExperimentCounter();
+      loadLastExperimentProtocol();
+    });
   </script>
 </body>
 </html>
