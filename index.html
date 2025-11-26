@@ -430,7 +430,7 @@
   <script src="https://cdn.botpress.cloud/webchat/v3.4/inject.js"></script>
   <script src="https://files.bpcontent.cloud/2025/11/20/13/20251120135545-5ASOW9FL.js" defer></script>
 
-  <script>
+ <script>
   async function updateExperimentCounter() {
     const counterEl = document.getElementById('experiment-number');
     if (!counterEl) return;
@@ -457,8 +457,8 @@
     }
   }
 
-  // Simple TSV parser that respects quoted cells (for multi-line protocols)
-  function parseTSV(text) {
+  // CSV parser that respects quotes, commas, and multi-line fields
+  function parseCSV(text) {
     const rows = [];
     let row = [];
     let cell = '';
@@ -469,17 +469,17 @@
 
       if (c === '"') {
         if (inQuotes && text[i + 1] === '"') {
-          // Escaped quote
+          // Escaped quote ("")
           cell += '"';
           i++;
         } else {
           inQuotes = !inQuotes;
         }
-      } else if (c === '\t' && !inQuotes) {
+      } else if (c === ',' && !inQuotes) {
         row.push(cell);
         cell = '';
       } else if ((c === '\n' || c === '\r') && !inQuotes) {
-        // Handle CRLF
+        // End of row
         if (c === '\r' && text[i + 1] === '\n') {
           i++;
         }
@@ -492,7 +492,6 @@
       }
     }
 
-    // Push last cell/row if any
     if (cell.length > 0 || row.length > 0) {
       row.push(cell);
       rows.push(row);
@@ -501,32 +500,36 @@
     return rows;
   }
 
+  function normalizeHeaderCell(h) {
+    return h
+      .replace(/\uFEFF/g, '')        // remove BOM if present
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');    // strip spaces, dots, etc.
+  }
+
   async function loadLastExperimentProtocol() {
     const numEl = document.getElementById('last-experiment-number');
     const protoEl = document.getElementById('last-experiment-protocol');
     if (!numEl || !protoEl) return;
 
-    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTt5IuGNQY_nW-xFZguKwJzUFQgudj0UGIiiYU--tKsn-g3mv9qPDEQVIy4q3YtErFUmmxBd_BHrYa7/pub?gid=0&single=true&output=tsv";
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTt5IuGNQY_nW-xFZguKwJzUFQgudj0UGIiiYU--tKsn-g3mv9qPDEQVIy4q3YtErFUmmxBd_BHrYa7/pub?gid=0&single=true&output=csv";
 
     try {
       const res = await fetch(SHEET_URL);
       if (!res.ok) throw new Error("Network response was not ok: " + res.status);
       const text = await res.text();
 
-      const rows = parseTSV(text.trim());
+      const rows = parseCSV(text.trim());
       if (!rows.length) {
         throw new Error("Sheet appears to be empty");
       }
 
-      // headers: Date | Exp Nr. | Protocol
-      const header = rows[0].map(h => h.trim().toLowerCase());
+      const rawHeader = rows[0];
+      const header = rawHeader.map(normalizeHeaderCell);
 
-      const dateIdx = header.indexOf('date');          // not used yet, but available
-      let exprIdx = header.indexOf('exp nr.');
-      if (exprIdx === -1) {
-        // fallback: anything starting with "exp"
-        exprIdx = header.findIndex(h => h.startsWith('exp'));
-      }
+      // "Date,Exp Nr.,Protocol" -> "date","expnr","protocol"
+      const dateIdx = header.indexOf('date'); // not used, but available if needed
+      const exprIdx = header.indexOf('expnr');
       const protocolIdx = header.indexOf('protocol');
 
       if (exprIdx === -1 || protocolIdx === -1) {
@@ -548,22 +551,21 @@
       }
 
       if (!bestRow) {
-        throw new Error("No valid experiment numbers found");
+        throw new Error("No valid numeric values found in 'Exp Nr.' column");
       }
-let protocol = bestRow[protocolIdx] || "";
 
-// Normalize various ways Google might encode line breaks
-protocol = protocol
-  .replace(/\r\n/g, '\n')        // Windows newlines -> \n
-  .replace(/\r/g, '\n')          // stray \r -> \n
-  .replace(/\\n/g, '\n')         // literal "\n" text -> real newline
-  .replace(/&#10;|&#13;/g, '\n'); // HTML linebreak entities -> newline
+      let protocol = bestRow[protocolIdx] || "";
 
-// Show nicely padded experiment number (e.g. 007)
-numEl.textContent = String(bestNum).padStart(3, '0');
-protoEl.textContent = protocol.trim() || "Protocol column is empty for the last experiment.";
+      // Extra safety: normalize any weird encodings of line breaks
+      protocol = protocol
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/\\n/g, '\n')
+        .replace(/&#10;|&#13;/g, '\n');
 
-      
+      // Show nicely padded experiment number (e.g. 007)
+      numEl.textContent = String(bestNum).padStart(3, '0');
+      protoEl.textContent = protocol.trim() || "Protocol column is empty for the last experiment.";
     } catch (err) {
       console.error("Error loading last experiment protocol:", err);
       numEl.textContent = "–";
