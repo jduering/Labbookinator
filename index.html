@@ -298,6 +298,46 @@
       border: 1px solid rgba(191, 191, 172, 0.9);
     }
 
+    /* Protocol search UI */
+    .protocol-search {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0.2rem 0 0.8rem;
+      font-size: 0.85rem;
+    }
+
+    .protocol-search input {
+      border-radius: 999px;
+      border: 1px solid rgba(137, 145, 134, 0.9);
+      padding: 0.2rem 0.6rem;
+      width: 4.5rem;
+      font-size: 0.85rem;
+      background: rgba(254, 252, 238, 0.98);
+    }
+
+    .protocol-search button {
+      border-radius: 999px;
+      border: none;
+      padding: 0.25rem 0.8rem;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      background: var(--turtle-shell);
+      color: #fffdf7;
+    }
+
+    .protocol-search button:hover {
+      opacity: 0.9;
+    }
+
+    .protocol-search input.invalid {
+      border-color: #b56a3b;
+      background: rgba(181, 106, 59, 0.08);
+    }
+
     code {
       font-family: "JetBrains Mono", Menlo, Consolas, monospace;
       font-size: 0.8rem;
@@ -421,6 +461,17 @@
         <p class="protocol-hint">
           Loaded live from your experiment registry Google Sheet.
         </p>
+        <div class="protocol-search">
+          <span>Jump to Exp Nr.:</span>
+          <input
+            id="exp-search-input"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="e.g. 12"
+          />
+          <button id="exp-search-button" type="button">Load</button>
+        </div>
         <pre id="last-experiment-protocol" class="protocol-body">Loading protocol…</pre>
       </div>
     </section>
@@ -430,142 +481,180 @@
   <script src="https://cdn.botpress.cloud/webchat/v3.4/inject.js"></script>
   <script src="https://files.bpcontent.cloud/2025/11/20/13/20251120135545-5ASOW9FL.js" defer></script>
 
-<script>
-  // CSV parser that respects quotes, commas, and multi-line fields
-  function parseCSV(text) {
-    const rows = [];
-    let row = [];
-    let cell = '';
-    let inQuotes = false;
+  <script>
+    // CSV parser that respects quotes, commas, and multi-line fields
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cell = '';
+      let inQuotes = false;
 
-    for (let i = 0; i < text.length; i++) {
-      const c = text[i];
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
 
-      if (c === '"') {
-        if (inQuotes && text[i + 1] === '"') {
-          // Escaped quote ("")
-          cell += '"';
-          i++;
+        if (c === '"') {
+          if (inQuotes && text[i + 1] === '"') {
+            // Escaped quote ("")
+            cell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (c === ',' && !inQuotes) {
+          row.push(cell);
+          cell = '';
+        } else if ((c === '\n' || c === '\r') && !inQuotes) {
+          // End of row
+          if (c === '\r' && text[i + 1] === '\n') {
+            i++;
+          }
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = '';
         } else {
-          inQuotes = !inQuotes;
+          cell += c;
         }
-      } else if (c === ',' && !inQuotes) {
-        row.push(cell);
-        cell = '';
-      } else if ((c === '\n' || c === '\r') && !inQuotes) {
-        // End of row
-        if (c === '\r' && text[i + 1] === '\n') {
-          i++;
-        }
+      }
+
+      if (cell.length > 0 || row.length > 0) {
         row.push(cell);
         rows.push(row);
-        row = [];
-        cell = '';
-      } else {
-        cell += c;
       }
+
+      return rows;
     }
 
-    if (cell.length > 0 || row.length > 0) {
-      row.push(cell);
-      rows.push(row);
+    function normalizeHeaderCell(h) {
+      return h
+        .replace(/\uFEFF/g, '')        // remove BOM if present
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');    // strip spaces, dots, etc.
     }
 
-    return rows;
-  }
+    let experimentRows = [];
 
-  function normalizeHeaderCell(h) {
-    return h
-      .replace(/\uFEFF/g, '')        // remove BOM if present
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '');    // strip spaces, dots, etc.
-  }
+    function displayExperiment(exp) {
+      if (!exp) return;
 
-  async function loadExperimentData() {
-    const bigCounterEl   = document.getElementById('experiment-number');
-    const smallCounterEl = document.getElementById('last-experiment-number');
-    const protoEl        = document.getElementById('last-experiment-protocol');
+      const bigCounterEl   = document.getElementById('experiment-number');
+      const smallCounterEl = document.getElementById('last-experiment-number');
+      const protoEl        = document.getElementById('last-experiment-protocol');
 
-    // If none of these exist, nothing to do
-    if (!bigCounterEl && !smallCounterEl && !protoEl) return;
-
-    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTt5IuGNQY_nW-xFZguKwJzUFQgudj0UGIiiYU--tKsn-g3mv9qPDEQVIy4q3YtErFUmmxBd_BHrYa7/pub?gid=0&single=true&output=csv";
-
-    try {
-      const res = await fetch(SHEET_URL);
-      if (!res.ok) throw new Error("Network response was not ok: " + res.status);
-      const text = await res.text();
-
-      const rows = parseCSV(text);
-      if (!rows.length) {
-        throw new Error("Sheet appears to be empty");
-      }
-
-      const rawHeader = rows[0];
-      const header = rawHeader.map(normalizeHeaderCell);
-
-      // "Date,Exp Nr.,Protocol" -> "date","expnr","protocol"
-      const exprIdx     = header.indexOf('expnr');
-      const protocolIdx = header.indexOf('protocol');
-
-      if (exprIdx === -1 || protocolIdx === -1) {
-        throw new Error("Could not find 'Exp Nr.' or 'Protocol' columns in header");
-      }
-
-      let bestRow = null;
-      let bestNum = -Infinity;
-
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row || row.length <= exprIdx) continue;
-
-        const rawVal = (row[exprIdx] || '').toString().trim();
-        const num = parseFloat(rawVal);
-
-        if (!Number.isNaN(num) && num > bestNum) {
-          bestNum = num;
-          bestRow = row;
-        }
-      }
-
-      if (!bestRow) {
-        throw new Error("No valid numeric values found in 'Exp Nr.' column");
-      }
-
-      let protocol = bestRow[protocolIdx] || "";
-
-      // Normalize line breaks (just in case)
+      // Normalize line breaks
+      let protocol = exp.protocol || "";
       protocol = protocol
         .replace(/\r\n/g, '\n')
         .replace(/\r/g, '\n')
         .replace(/\\n/g, '\n')
         .replace(/&#10;|&#13;/g, '\n');
 
-      const padded = String(bestNum).padStart(3, '0');
+      const padded = String(exp.expNr).padStart(3, '0');
 
-      // Update big counter card
-      if (bigCounterEl) {
-        bigCounterEl.textContent = padded;
-      }
-
-      // Update small pill next to "Last Experiment Protocol"
-      if (smallCounterEl) {
-        smallCounterEl.textContent = padded;
-      }
-
-      // Update protocol text
-      if (protoEl) {
-        protoEl.textContent = protocol.trim() || "Protocol column is empty for the last experiment.";
-      }
-    } catch (err) {
-      console.error("Error loading experiment data:", err);
-      if (bigCounterEl)   bigCounterEl.textContent   = "–";
-      if (smallCounterEl) smallCounterEl.textContent = "–";
-      if (protoEl)        protoEl.textContent        = "Could not load protocol from the Google Sheet.";
+      if (bigCounterEl)   bigCounterEl.textContent   = padded;
+      if (smallCounterEl) smallCounterEl.textContent = padded;
+      if (protoEl)        protoEl.textContent        = protocol.trim() || "Protocol column is empty for this experiment.";
     }
-  }
 
-  document.addEventListener('DOMContentLoaded', loadExperimentData);
-</script>
+    async function loadExperimentData() {
+      const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTt5IuGNQY_nW-xFZguKwJzUFQgudj0UGIiiYU--tKsn-g3mv9qPDEQVIy4q3YtErFUmmxBd_BHrYa7/pub?gid=0&single=true&output=csv";
+
+      const bigCounterEl   = document.getElementById('experiment-number');
+      const smallCounterEl = document.getElementById('last-experiment-number');
+      const protoEl        = document.getElementById('last-experiment-protocol');
+      const searchInput    = document.getElementById('exp-search-input');
+      const searchButton   = document.getElementById('exp-search-button');
+
+      try {
+        const res = await fetch(SHEET_URL);
+        if (!res.ok) throw new Error("Network response was not ok: " + res.status);
+        const text = await res.text();
+
+        const rows = parseCSV(text);
+        if (!rows.length) throw new Error("Sheet appears to be empty");
+
+        const rawHeader = rows[0];
+        const header = rawHeader.map(normalizeHeaderCell);
+
+        // "Date,Exp Nr.,Protocol" -> "date","expnr","protocol"
+        const dateIdx     = header.indexOf('date');
+        const exprIdx     = header.indexOf('expnr');
+        const protocolIdx = header.indexOf('protocol');
+
+        if (exprIdx === -1 || protocolIdx === -1) {
+          throw new Error("Could not find 'Exp Nr.' or 'Protocol' columns in header");
+        }
+
+        experimentRows = [];
+
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || row.length <= exprIdx) continue;
+
+          const rawVal = (row[exprIdx] || '').toString().trim();
+          const num = parseFloat(rawVal);
+          if (Number.isNaN(num)) continue;
+
+          const protocol = row[protocolIdx] || "";
+          const date = dateIdx !== -1 ? (row[dateIdx] || "") : "";
+
+          experimentRows.push({
+            expNr: num,
+            protocol,
+            date
+          });
+        }
+
+        if (!experimentRows.length) {
+          throw new Error("No valid numeric values found in 'Exp Nr.' column");
+        }
+
+        // Sort by Exp Nr. and show the last one as default
+        experimentRows.sort((a, b) => a.expNr - b.expNr);
+        const last = experimentRows[experimentRows.length - 1];
+        displayExperiment(last);
+
+        // Hook up search
+        if (searchInput && searchButton) {
+          const doSearch = () => {
+            const val = searchInput.value.trim();
+            if (!val) {
+              searchInput.classList.add('invalid');
+              return;
+            }
+            const num = parseFloat(val);
+            if (Number.isNaN(num)) {
+              searchInput.classList.add('invalid');
+              return;
+            }
+
+            const match = experimentRows.find(r => r.expNr === num);
+            if (match) {
+              searchInput.classList.remove('invalid');
+              displayExperiment(match);
+            } else {
+              searchInput.classList.add('invalid');
+              if (smallCounterEl) smallCounterEl.textContent = "–";
+              if (protoEl) protoEl.textContent = `No experiment with Exp Nr. ${val} found.`;
+            }
+          };
+
+          searchButton.addEventListener('click', doSearch);
+          searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              doSearch();
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Error loading experiment data:", err);
+        if (bigCounterEl)   bigCounterEl.textContent   = "–";
+        if (smallCounterEl) smallCounterEl.textContent = "–";
+        if (protoEl)        protoEl.textContent        = "Could not load protocol from the Google Sheet.";
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadExperimentData);
+  </script>
 </body>
 </html>
