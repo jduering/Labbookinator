@@ -550,12 +550,20 @@
       if (!bestRow) {
         throw new Error("No valid experiment numbers found");
       }
+let protocol = bestRow[protocolIdx] || "";
 
-      const protocol = bestRow[protocolIdx] || "";
+// Normalize various ways Google might encode line breaks
+protocol = protocol
+  .replace(/\r\n/g, '\n')        // Windows newlines -> \n
+  .replace(/\r/g, '\n')          // stray \r -> \n
+  .replace(/\\n/g, '\n')         // literal "\n" text -> real newline
+  .replace(/&#10;|&#13;/g, '\n'); // HTML linebreak entities -> newline
 
-      // Show nicely padded experiment number (e.g. 007)
-      numEl.textContent = String(bestNum).padStart(3, '0');
-      protoEl.textContent = protocol || "Protocol column is empty for the last experiment.";
+// Show nicely padded experiment number (e.g. 007)
+numEl.textContent = String(bestNum).padStart(3, '0');
+protoEl.textContent = protocol.trim() || "Protocol column is empty for the last experiment.";
+
+      
     } catch (err) {
       console.error("Error loading last experiment protocol:", err);
       numEl.textContent = "–";
