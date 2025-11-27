@@ -23,8 +23,7 @@
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -52,9 +51,8 @@
       );
       border-radius: 24px;
       padding: 1.5rem 2.25rem 2rem;
-      box-shadow:
-        0 22px 55px rgba(58, 71, 69, 0.4),
-        0 0 0 1px rgba(191, 191, 172, 0.7);
+      box-shadow: 0 22px 55px rgba(58, 71, 69, 0.4),
+                  0 0 0 1px rgba(191, 191, 172, 0.7);
       backdrop-filter: blur(14px);
     }
 
@@ -63,9 +61,8 @@
       border-radius: 20px;
       overflow: hidden;
       margin-bottom: 1.25rem;
-      box-shadow:
-        0 18px 40px rgba(58, 71, 69, 0.45),
-        0 0 0 1px rgba(58, 71, 69, 0.5);
+      box-shadow: 0 18px 40px rgba(58, 71, 69, 0.45),
+                  0 0 0 1px rgba(58, 71, 69, 0.5);
       background: var(--turtle-sand);
     }
 
@@ -130,14 +127,20 @@
       align-items: start; /* let tiles have their own height */
     }
 
+    /* Right column to stack multiple forms */
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
     /* Generic card */
     .card {
       background: var(--card-bg);
       border-radius: 20px;
       padding: 1.1rem 1.4rem;
-      box-shadow:
-        0 8px 20px rgba(58, 71, 69, 0.18),
-        0 0 0 1px rgba(191, 191, 172, 0.9);
+      box-shadow: 0 8px 20px rgba(58, 71, 69, 0.18),
+                  0 0 0 1px rgba(191, 191, 172, 0.9);
       position: relative;
       overflow: hidden;
     }
@@ -171,9 +174,8 @@
       font-weight: 800;
       letter-spacing: 0.16em;
       color: var(--turtle-shell);
-      text-shadow:
-        0 5px 14px rgba(58, 71, 69, 0.6),
-        0 0 1px rgba(58, 71, 69, 0.9);
+      text-shadow: 0 5px 14px rgba(58, 71, 69, 0.6),
+                   0 0 1px rgba(58, 71, 69, 0.9);
       margin-bottom: 0.4rem;
       padding-bottom: 0.3rem;
       border-bottom: 1px dashed rgba(191, 191, 172, 0.9);
@@ -217,9 +219,8 @@
       background: var(--card-bg);
       border-radius: 20px;
       padding: 1.1rem 1.4rem;
-      box-shadow:
-        0 8px 20px rgba(58, 71, 69, 0.18),
-        0 0 0 1px rgba(191, 191, 172, 0.9);
+      box-shadow: 0 8px 20px rgba(58, 71, 69, 0.18),
+                  0 0 0 1px rgba(191, 191, 172, 0.9);
       display: flex;
       flex-direction: column;
       gap: 0.7rem;
@@ -253,13 +254,13 @@
       border: 2px solid rgba(191, 191, 172, 0.9);
       background: rgba(254, 252, 238, 0.98);
       padding: 0.5rem;
-      max-height: 560px;      /* cap tile height */
-      overflow: auto;         /* scroll inside if needed */
+      max-height: 560px; /* cap tile height */
+      overflow: auto;    /* scroll inside if needed */
     }
 
     .form-placeholder iframe {
       width: 100%;
-      height: 520px;          /* shorter form */
+      height: 520px; /* shorter form */
       border: 0;
     }
 
@@ -293,8 +294,7 @@
     .protocol-body {
       margin: 0;
       white-space: pre-wrap;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 0.9rem;
       line-height: 1.45;
       background: #f7f4eb;
@@ -386,10 +386,8 @@
 <body class="protected">
   <div class="page">
     <div class="hero">
-      <img
-        src="https://github.com/jduering/Labbookinator/blob/main/Add%20a%20heading.png?raw=true"
-        alt="Labbookinator – Labbook Automation Header"
-      />
+      <img src="https://github.com/jduering/Labbookinator/blob/main/Add%20a%20heading.png?raw=true"
+           alt="Labbookinator – Labbook Automation Header" />
     </div>
 
     <header>
@@ -398,13 +396,12 @@
         <h1>Experiment Registry</h1>
       </div>
       <p>
-        Central place to see the latest experiment number and submit new runs
-        via your automated labbook workflow.
+        Central place to see the latest experiment number and submit new runs via your automated labbook workflow.
       </p>
     </header>
 
     <main class="layout">
-      <!-- BIG COUNTER -->
+      <!-- BIG COUNTER (left column) -->
       <section class="card" aria-label="Latest experiment number">
         <div class="card-inner">
           <div class="counter-label">Current last experiment</div>
@@ -415,7 +412,6 @@
           <p class="counter-subtext">
             This is the latest assigned experiment ID in your automated labbook.
           </p>
-
           <div class="meta-row">
             <div class="meta-pill">
               <span class="icon">🐢</span>
@@ -429,28 +425,51 @@
         </div>
       </section>
 
-      <!-- GOOGLE FORM AREA -->
-      <section class="form-card">
-        <div class="form-header">
-          <h2>New Experiment Submission</h2>
-        </div>
-        <p class="form-description">
-          Submit raw notes or parameters for each new experiment. Your Make.com /
-          labbook automation can then turn these into clean protocols and log all reagents.
-        </p>
+      <!-- RIGHT COLUMN: both forms stacked -->
+      <div class="right-column">
+        <!-- GOOGLE FORM AREA: New Experiment Submission (existing form) -->
+        <section class="form-card">
+          <div class="form-header">
+            <h2>New Experiment Submission</h2>
+          </div>
+          <p class="form-description">
+            Submit raw notes or parameters for each new experiment. Your Make.com / labbook automation can then turn
+            these into clean protocols and log all reagents.
+          </p>
+          <div class="form-placeholder" id="google-form-container">
+            <iframe
+              src="https://docs.google.com/forms/d/e/1FAIpQLSc7gxfI-xwMNXVhxefOE-ri2oCp6oJWF8RV2GK_YMWdj1MpeA/viewform?embedded=true"
+              width="100%"
+              frameborder="0"
+              marginheight="0"
+              marginwidth="0">
+              Loading…
+            </iframe>
+          </div>
+        </section>
 
-        <div class="form-placeholder" id="google-form-container">
-          <iframe
-            src="https://docs.google.com/forms/d/e/1FAIpQLSc7gxfI-xwMNXVhxefOE-ri2oCp6oJWF8RV2GK_YMWdj1MpeA/viewform?embedded=true"
-            width="100%"
-            frameborder="0"
-            marginheight="0"
-            marginwidth="0"
-          >
-            Loading…
-          </iframe>
-        </div>
-      </section>
+        <!-- NEW FORM: Results Update -->
+        <section class="form-card">
+          <div class="form-header">
+            <h2>Results Update</h2>
+          </div>
+          <p class="form-description">
+            Upload results, images, tables, and a quick interpretation for completed experiments so they can be
+            compiled into your labbook and reports.
+          </p>
+          <div class="form-placeholder">
+            <iframe
+              src="https://docs.google.com/forms/d/e/1FAIpQLSdAqd80_3nSqWzoPisbBJT5NOJEAQc_k0dsBnXle-UD20zEww/viewform?embedded=true"
+              width="100%"
+              height="745"
+              frameborder="0"
+              marginheight="0"
+              marginwidth="0">
+              Loading…
+            </iframe>
+          </div>
+        </section>
+      </div>
     </main>
 
     <!-- LAST EXPERIMENT PROTOCOL (from Google Sheet) -->
@@ -466,17 +485,13 @@
         <p class="protocol-hint">
           Loaded live from your experiment registry Google Sheet.
         </p>
+
         <div class="protocol-search">
           <span>Jump to Exp Nr.:</span>
-          <input
-            id="exp-search-input"
-            type="number"
-            min="1"
-            step="1"
-            placeholder="e.g. 12"
-          />
+          <input id="exp-search-input" type="number" min="1" step="1" placeholder="e.g. 12" />
           <button id="exp-search-button" type="button">Load</button>
         </div>
+
         <pre id="last-experiment-protocol" class="protocol-body">Loading protocol…</pre>
       </div>
     </section>
@@ -505,10 +520,10 @@
         // replace content with an "access denied" message
         document.body.innerHTML =
           '<div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#fdf6ea; color:#3a4745; padding:2rem; box-sizing:border-box;">' +
-            '<div style="max-width:480px; text-align:center;">' +
-              '<h1 style="margin-bottom:0.75rem; font-size:1.8rem;">Access denied</h1>' +
-              '<p style="margin:0; font-size:0.95rem;">Incorrect password. Reload the page to try again.</p>' +
-            "</div>" +
+          '<div style="max-width:480px; text-align:center;">' +
+          '<h1 style="margin-bottom:0.75rem; font-size:1.8rem;">Access denied</h1>' +
+          '<p style="margin:0; font-size:0.95rem;">Incorrect password. Reload the page to try again.</p>' +
+          "</div>" +
           "</div>";
         document.body.classList.remove("protected");
       }
@@ -565,9 +580,9 @@
 
     function normalizeHeaderCell(h) {
       return h
-        .replace(/\uFEFF/g, '')        // remove BOM if present
+        .replace(/\uFEFF/g, '') // remove BOM if present
         .toLowerCase()
-        .replace(/[^a-z0-9]/g, '');    // strip spaces, dots, etc.
+        .replace(/[^a-z0-9]/g, ''); // strip spaces, dots, etc.
     }
 
     let experimentRows = [];
@@ -575,9 +590,9 @@
     function displayExperiment(exp) {
       if (!exp) return;
 
-      const bigCounterEl   = document.getElementById('experiment-number');
+      const bigCounterEl = document.getElementById('experiment-number');
       const smallCounterEl = document.getElementById('last-experiment-number');
-      const protoEl        = document.getElementById('last-experiment-protocol');
+      const protoEl = document.getElementById('last-experiment-protocol');
 
       // Normalize line breaks
       let protocol = exp.protocol || "";
@@ -589,34 +604,34 @@
 
       const padded = String(exp.expNr).padStart(3, '0');
 
-      if (bigCounterEl)   bigCounterEl.textContent   = padded;
+      if (bigCounterEl) bigCounterEl.textContent = padded;
       if (smallCounterEl) smallCounterEl.textContent = padded;
-      if (protoEl)        protoEl.textContent        = protocol.trim() || "Protocol column is empty for this experiment.";
+      if (protoEl) protoEl.textContent = protocol.trim() || "Protocol column is empty for this experiment.";
     }
 
     async function loadExperimentData() {
       const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTt5IuGNQY_nW-xFZguKwJzUFQgudj0UGIiiYU--tKsn-g3mv9qPDEQVIy4q3YtErFUmmxBd_BHrYa7/pub?gid=0&single=true&output=csv";
 
-      const bigCounterEl   = document.getElementById('experiment-number');
+      const bigCounterEl = document.getElementById('experiment-number');
       const smallCounterEl = document.getElementById('last-experiment-number');
-      const protoEl        = document.getElementById('last-experiment-protocol');
-      const searchInput    = document.getElementById('exp-search-input');
-      const searchButton   = document.getElementById('exp-search-button');
+      const protoEl = document.getElementById('last-experiment-protocol');
+      const searchInput = document.getElementById('exp-search-input');
+      const searchButton = document.getElementById('exp-search-button');
 
       try {
         const res = await fetch(SHEET_URL);
         if (!res.ok) throw new Error("Network response was not ok: " + res.status);
-        const text = await res.text();
 
+        const text = await res.text();
         const rows = parseCSV(text);
+
         if (!rows.length) throw new Error("Sheet appears to be empty");
 
         const rawHeader = rows[0];
-        const header = rawHeader.map(normalizeHeaderCell);
+        const header = rawHeader.map(normalizeHeaderCell); // "Date,Exp Nr.,Protocol" -> "date","expnr","protocol"
 
-        // "Date,Exp Nr.,Protocol" -> "date","expnr","protocol"
-        const dateIdx     = header.indexOf('date');
-        const exprIdx     = header.indexOf('expnr');
+        const dateIdx = header.indexOf('date');
+        const exprIdx = header.indexOf('expnr');
         const protocolIdx = header.indexOf('protocol');
 
         if (exprIdx === -1 || protocolIdx === -1) {
@@ -636,11 +651,7 @@
           const protocol = row[protocolIdx] || "";
           const date = dateIdx !== -1 ? (row[dateIdx] || "") : "";
 
-          experimentRows.push({
-            expNr: num,
-            protocol,
-            date
-          });
+          experimentRows.push({ expNr: num, protocol, date });
         }
 
         if (!experimentRows.length) {
@@ -660,6 +671,7 @@
               searchInput.classList.add('invalid');
               return;
             }
+
             const num = parseFloat(val);
             if (Number.isNaN(num)) {
               searchInput.classList.add('invalid');
@@ -673,7 +685,7 @@
             } else {
               searchInput.classList.add('invalid');
               if (smallCounterEl) smallCounterEl.textContent = "–";
-              if (protoEl) protoEl.textContent = `No experiment with Exp Nr. ${val} found.`;
+              if (protoEl) protoEl.textContent = "No experiment with Exp Nr. " + val + " found.";
             }
           };
 
@@ -686,9 +698,9 @@
         }
       } catch (err) {
         console.error("Error loading experiment data:", err);
-        if (bigCounterEl)   bigCounterEl.textContent   = "–";
+        if (bigCounterEl) bigCounterEl.textContent = "–";
         if (smallCounterEl) smallCounterEl.textContent = "–";
-        if (protoEl)        protoEl.textContent        = "Could not load protocol from the Google Sheet.";
+        if (protoEl) protoEl.textContent = "Could not load protocol from the Google Sheet.";
       }
     }
 
