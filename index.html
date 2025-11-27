@@ -120,18 +120,13 @@
       box-shadow: 0 0 10px rgba(214, 140, 69, 0.6);
     }
 
-    .layout {
+    /* Two-form grid */
+    .forms-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1.25rem;
-      align-items: start; /* let tiles have their own height */
-    }
-
-    /* Right column to stack multiple forms */
-    .right-column {
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
+      align-items: start;
+      margin-top: 1.25rem;
     }
 
     /* Generic card */
@@ -356,7 +351,7 @@
         padding: 1.2rem 1.1rem 1.6rem;
       }
 
-      .layout {
+      .forms-layout {
         grid-template-columns: minmax(0, 1fr);
       }
 
@@ -400,8 +395,8 @@
       </p>
     </header>
 
-    <main class="layout">
-      <!-- BIG COUNTER (left column) -->
+    <main>
+      <!-- COUNTER ON TOP (full width) -->
       <section class="card" aria-label="Latest experiment number">
         <div class="card-inner">
           <div class="counter-label">Current last experiment</div>
@@ -425,8 +420,8 @@
         </div>
       </section>
 
-      <!-- RIGHT COLUMN: both forms stacked -->
-      <div class="right-column">
+      <!-- TWO FORMS SIDE BY SIDE -->
+      <div class="forms-layout">
         <!-- GOOGLE FORM AREA: New Experiment Submission (existing form) -->
         <section class="form-card">
           <div class="form-header">
@@ -472,7 +467,7 @@
       </div>
     </main>
 
-    <!-- LAST EXPERIMENT PROTOCOL (from Google Sheet) -->
+    <!-- LAST EXPERIMENT PROTOCOL (from Google Sheet) AT BOTTOM -->
     <section class="card protocol-card" aria-label="Last experiment protocol">
       <div class="card-inner">
         <div class="protocol-header">
